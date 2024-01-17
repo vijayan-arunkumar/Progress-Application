@@ -86,8 +86,7 @@ DEFINE TEMP-TABLE ttselected LIKE ttTables.
     ~{&OPEN-QUERY-BROWSE-9}
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS BUTTON-1 BUTTON-2 BUTTON-4 BROWSE-7 BROWSE-9 ~
-Db_name 
+&Scoped-Define ENABLED-OBJECTS BUTTON-1 BUTTON-4 BROWSE-7 BROWSE-9 Db_name 
 &Scoped-Define DISPLAYED-OBJECTS Db_name 
 
 /* Custom List Definitions                                              */
@@ -204,8 +203,8 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "Tables"
-         COLUMN             = 25.6
-         ROW                = 9.43
+         COLUMN             = 74.6
+         ROW                = 9.24
          HEIGHT             = 23.95
          WIDTH              = 160.6
          MAX-HEIGHT         = 24
@@ -236,6 +235,8 @@ ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
    FRAME-NAME                                                           */
 /* BROWSE-TAB BROWSE-7 BUTTON-4 DEFAULT-FRAME */
 /* BROWSE-TAB BROWSE-9 BROWSE-7 DEFAULT-FRAME */
+/* SETTINGS FOR BUTTON BUTTON-2 IN FRAME DEFAULT-FRAME
+   NO-ENABLE                                                            */
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(C-Win)
 THEN C-Win:HIDDEN = no.
 
@@ -323,8 +324,14 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL BUTTON-1 C-Win
 ON CHOOSE OF BUTTON-1 IN FRAME DEFAULT-FRAME /* Exit */
 DO:
-  APPLY "CLOSE":U TO THIS-PROCEDURE.
-  RETURN NO-APPLY.
+   MESSAGE "Do you want to close this application ? " 
+   VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO UPDATE lChoice AS LOGICAL.
+   IF lChoice THEN
+   DO:
+   APPLY "CLOSE":U TO THIS-PROCEDURE.
+   RETURN NO-APPLY.
+   END.
+   ELSE RETURN NO-APPLY.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -385,22 +392,19 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
   RUN enable_UI.
   IF LDBNAME(1) = ? OR LDBNAME(1) = "" THEN
   DO:
-    MESSAGE "No database connection was established."
-      VIEW-AS ALERT-BOX ERROR BUTTONS OK.
+     MESSAGE "No database connection was established."
+     VIEW-AS ALERT-BOX ERROR BUTTONS OK.
      RETURN.
   END.
   ELSE DO:
      ASSIGN Db_name = LDBNAME(1).   
-  
-     DISPLAY Db_name WITH FRAME default-frame IN WINDOW c-win. 
+     DISPLAY Db_name WITH FRAME default-frame IN WINDOW c-win.
+     RUN queryTableCheck.
      RUN retrivetables(INPUT Db_name).
-  
      APPLY 'VALUE-CHANGED':U TO BROWSE-7.
-  END.
-  
-  
+  END. 
   IF NOT THIS-PROCEDURE:PERSISTENT THEN
-    WAIT-FOR CLOSE OF THIS-PROCEDURE.
+  WAIT-FOR CLOSE OF THIS-PROCEDURE.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -441,10 +445,57 @@ PROCEDURE enable_UI :
 ------------------------------------------------------------------------------*/
   DISPLAY Db_name 
       WITH FRAME DEFAULT-FRAME IN WINDOW C-Win.
-  ENABLE BUTTON-1 BUTTON-2 BUTTON-4 BROWSE-7 BROWSE-9 Db_name 
+  ENABLE BUTTON-1 BUTTON-4 BROWSE-7 BROWSE-9 Db_name 
       WITH FRAME DEFAULT-FRAME IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-DEFAULT-FRAME}
   VIEW C-Win.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE queryTableCheck C-Win 
+PROCEDURE queryTableCheck :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+DEF VAR hb AS HANDLE NO-UNDO.
+
+CREATE BUFFER hb FOR TABLE "excelexport" NO-ERROR.
+IF VALID-HANDLE( hb ) THEN DO:
+ENABLE BUTTON-2 WITH FRAME default-frame.
+
+END.
+ELSE DO:  
+  MESSAGE "It seems u dont have table to store your Queries Please proceed yes to create Table to it"
+  VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO UPDATE lChoice AS LOGICAL.
+  IF lChoice THEN DO:
+   DO TRANSACTION:    
+     CREATE TABLE excelexport
+       (
+       tableName CHAR (500) ,
+       querycopy CHAR (500),
+       fieldnames CHAR (500),
+       filelocation CHAR (500),
+       filename CHAR (200),
+       Qtime CHAR (50)
+       ).
+   END. 
+   CREATE BUFFER hb FOR TABLE "excelexport" NO-ERROR.
+   IF VALID-HANDLE( hb ) THEN DO:
+   ENABLE BUTTON-2 WITH FRAME default-frame. 
+   END.
+   ELSE DO:
+   MESSAGE "Error Occurred".
+   RETURN NO-APPLY.
+   END.
+  END.
+  ELSE DO:
+   MESSAGE "You cant use batch mode" VIEW-AS ALERT-BOX WARNING BUTTON ok.
+  END.
+END.
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */

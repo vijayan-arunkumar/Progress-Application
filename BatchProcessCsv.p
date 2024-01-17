@@ -115,9 +115,8 @@ repeating:
             DEFINE VARIABLE cFieldName AS CHARACTER NO-UNDO.
             ASSIGN cFieldName = ENTRY(iLoop, ipfields, ",").
             ASSIGN ttExportDate.Field_num = inum.
-            ttExportDate.Field_data = ttExportDate.Field_data + "," +
-                REPLACE(STRING(h_table:BUFFER-FIELD(cFieldName):BUFFER-VALUE), ",", "/")
-                NO-ERROR.
+                   ttExportDate.Field_data = ttExportDate.Field_data + "," +
+                   REPLACE(STRING(h_table:BUFFER-FIELD(cFieldName):BUFFER-VALUE), ",", "/") NO-ERROR.             
         END.
 
         RELEASE ttExportDate.
@@ -131,13 +130,45 @@ FOR EACH ttExportDate NO-LOCK:
 END.
 
 OUTPUT STREAM ExportToCsv CLOSE.
-
+RUN OpenExcel(INPUT GetDir()).
 DELETE OBJECT qh.
 ASSIGN qh = ?.
 
 IF VALID-HANDLE(h_table) THEN DELETE OBJECT h_table.
   ASSIGN h_table = ?.
+
+
    
+PROCEDURE OpenExcel:
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+DEFINE INPUT PARAMETER vcFilename AS CHARACTER NO-UNDO.
+
+DEFINE VARIABLE chExcel        AS COM-HANDLE NO-UNDO.
+DEFINE VARIABLE chWorkbook     AS COM-HANDLE NO-UNDO.
+DEFINE VARIABLE chWorksheet    AS COM-HANDLE NO-UNDO.
+DEFINE VARIABLE SaveFilename   AS CHARACTER NO-UNDO.
+
+ASSIGN SaveFilename = REPLACE(vcFilename,".csv",".xlsx").
+
+CREATE "Excel.Application" chExcel.
+ASSIGN
+chWorkbook=chExcel:Workbooks:Open(vcFilename)NO-ERROR.
+chWorkbook = chExcel:Workbooks:Item(1).
+chWorkSheet = chExcel:Sheets:Item(1).
+chWorksheet:Range("1:1"):SELECT.
+chExcel:Selection:FONT:Bold = TRUE.
+chWorksheet:Cells:Select.
+chWorksheet:Cells:EntireColumn:AutoFit.
+chWorksheet:Range("A2"):SELECT.
+chExcel:DisplayAlerts = FALSE.
+chWorkbook:SaveAs(vcFilename,51,,,,,,).
+chWorkbook:Close(TRUE).
+
+END PROCEDURE.
+
 
 /* ************************  Function Implementations ***************** */
 

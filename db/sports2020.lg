@@ -26132,3 +26132,11 @@ EM client type PASN, on socius using TCP/IP IPV4 address 127.0.0.1.
 [2024/01/10@09:13:34.738+2300] P-13640      T-13936 I ABL      : (15109) At Database close the number of live transactions is 0. 
 [2024/01/10@09:13:34.738+2300] P-13640      T-13936 I ABL      : (15743) Before Image Log Completion at Block 26 Offset 8191. 
 [2024/01/10@09:13:34.740+2300] P-13640      T-13936 I ABL      : (334)   Single-user session end. 
+
+                Tue Jan 16 12:12:27 2024
+[2024/01/16@12:12:27.592+2300] P-15408      T-12400 I ABL      : (451)   Single-user session begin for socius-D012 on CON:. 
+[2024/01/16@12:12:27.594+2300] P-15408      T-12400 I ABL      : (15321) Before Image Log Initialization at block 26  offset 8191. 
+[2024/01/16@12:12:27.614+2300] P-15408      T-12400 I ABL      : (7129)  Usr 0 set name to socius-D012. 
+[2024/01/16@12:12:32.738+2300] P-15408      T-12400 I ABL      : (15109) At Database close the number of live transactions is 0. 
+[2024/01/16@12:12:32.738+2300] P-15408      T-12400 I ABL      : (15743) Before Image Log Completion at Block 26 Offset 8191. 
+[2024/01/16@12:12:32.739+2300] P-15408      T-12400 I ABL      : (334)   Single-user session end. 

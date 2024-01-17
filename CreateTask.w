@@ -38,14 +38,14 @@ CREATE WIDGET-POOL.
 /* Parameters Definitions ---                                           */
 
 /* Local Variable Definitions ---                                       */
-    DEFINE VARIABLE tskName AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE outbatName AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE mve AS LOGICAL NO-UNDO.
-    DEFINE VARIABLE Fl_time AS CHARACTER FORMAT "9(4)".
-    DEFINE VARIABLE tme1 AS CHARACTER.
-    DEFINE VARIABLE tme2 AS CHARACTER.   
-    DEFINE VARIABLE tme3 AS INTEGER.
-    DEFINE VARIABLE tme4 AS CHARACTER.
+ DEFINE VARIABLE tskName AS CHARACTER NO-UNDO.
+ DEFINE VARIABLE outbatName AS CHARACTER NO-UNDO.
+ DEFINE VARIABLE mve AS LOGICAL NO-UNDO.
+ DEFINE VARIABLE Fl_time AS CHARACTER FORMAT "9(4)" NO-UNDO.  
+ DEFINE VARIABLE time1 AS CHARACTER NO-UNDO.
+ DEFINE VARIABLE time2 AS CHARACTER NO-UNDO.     
+ DEFINE VARIABLE time3 AS INTEGER NO-UNDO.
+ DEFINE VARIABLE time4 AS CHARACTER NO-UNDO.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -146,14 +146,14 @@ DEFINE FRAME DEFAULT-FRAME
      fl_Rm AT ROW 8.57 COL 34 COLON-ALIGNED WIDGET-ID 22
      btn_create-2 AT ROW 10.48 COL 16 WIDGET-ID 60
      Btn_cancel AT ROW 10.48 COL 43 WIDGET-ID 34
-     "Task Trigger :" VIEW-AS TEXT
-          SIZE 18 BY 1 AT ROW 6.71 COL 8 WIDGET-ID 16
-     ":" VIEW-AS TEXT
-          SIZE 1.2 BY .95 AT ROW 4.81 COL 33 WIDGET-ID 54
-     "Task Name :" VIEW-AS TEXT
-          SIZE 16 BY 1 AT ROW 2.91 COL 8 WIDGET-ID 10
      "Task Time :" VIEW-AS TEXT
           SIZE 14 BY 1 AT ROW 4.81 COL 8 WIDGET-ID 12
+     "Task Name" VIEW-AS TEXT
+          SIZE 16 BY 1 AT ROW 2.91 COL 8 WIDGET-ID 10
+     ":" VIEW-AS TEXT
+          SIZE 1.2 BY .95 AT ROW 4.81 COL 33 WIDGET-ID 54
+     "Task Trigger :" VIEW-AS TEXT
+          SIZE 18 BY 1 AT ROW 6.71 COL 8 WIDGET-ID 16
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 1 ROW 1
@@ -179,8 +179,8 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "Schedule Tasks in  Task Scheduler"
-         COLUMN             = 87.8
-         ROW                = 13.24
+         COLUMN             = 61.6
+         ROW                = 13.48
          HEIGHT             = 11.57
          WIDTH              = 80
          MAX-HEIGHT         = 16
@@ -267,14 +267,20 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn_create-2 C-Win
 ON CHOOSE OF btn_create-2 IN FRAME DEFAULT-FRAME /* Create */
 DO:
+    APPLY "leave" TO Fl_name.
+    APPLY "leave" TO t-hrs.
+    APPLY "leave" TO t-mins.
+    APPLY "leave" TO fl_rr.
+    APPLY "leave" TO fl_Rm.
+    
     IF Fl_name:SCREEN-VALUE = "" OR Fl_name:SCREEN-VALUE = ?  THEN
     DO:
         MESSAGE "Please Enter Task Name." VIEW-AS ALERT-BOX ERROR.
         APPLY "entry" TO Fl_name.
         RETURN.           
     END.
-    
-    ELSE IF t-hrs = "" OR t-hrs = ? OR t-hrs = "00"  THEN
+    APPLY "entry" TO t-hrs.
+    IF t-hrs = "" OR t-hrs = ? OR t-hrs = "00"  THEN
     DO:
         MESSAGE "Please Enter Task Hour." VIEW-AS ALERT-BOX ERROR .
         APPLY "entry" TO t-hrs. 
@@ -287,6 +293,7 @@ DO:
         APPLY "entry" TO t-mins. 
         RETURN.      
     END.
+      
     ELSE IF Fl_time = "" OR Fl_time = ?  THEN
     DO:
         MESSAGE "Please Enter Task Time." VIEW-AS ALERT-BOX ERROR .
@@ -296,24 +303,23 @@ DO:
        
     IF t-day:SCREEN-VALUE = "AM" AND integer(Fl_time) = 1200 THEN
     DO:
-    ASSIGN tme1 = Fl_time.
-    ASSIGN tme4 = SUBSTRING(STRING(tme1), 3,2) .
-    ASSIGN Fl_time = "00" + tme4.
+    ASSIGN time1 = Fl_time.
+    ASSIGN time4 = SUBSTRING(STRING(time1), 3,2) .
+    ASSIGN Fl_time = "00" + time4.
     END.
     
     IF t-day:SCREEN-VALUE = "PM" AND Fl_time < "1200" THEN
     DO:
-      ASSIGN tme1 = Fl_time.
-      ASSIGN tme2 = SUBSTRING(STRING(tme1), 1, 2) .
-      ASSIGN tme4 = SUBSTRING(STRING(tme1), 3,2) .
-      ASSIGN tme3 = INTEGER(tme2) + 12.
-      IF tme3 > 23 THEN
+      ASSIGN time1 = Fl_time.
+      ASSIGN time2 = SUBSTRING(STRING(time1), 1, 2) .
+      ASSIGN time4 = SUBSTRING(STRING(time1), 3,2) .
+      ASSIGN time3 = INTEGER(time2) + 12.
+      IF time3 > 23 THEN
       DO:
-       ASSIGN Fl_time = "00" + tme4.
+       ASSIGN Fl_time = "00" + time4.
       END.
-       ASSIGN Fl_time = STRING(tme3) + tme4.
+       ASSIGN Fl_time = STRING(time3) + time4.
     END.
-    
     
     ELSE IF Cm_tri:SCREEN-VALUE = "" OR Cm_tri:SCREEN-VALUE = ?  THEN
     DO:
@@ -342,7 +348,7 @@ DO:
         APPLY "entry" TO fl_rr.
         RETURN.
     END.
-  
+    
     ASSIGN tskName = Fl_name:SCREEN-VALUE.
     IF tskName <>'' AND tskName <>? THEN
     DO:
@@ -353,9 +359,6 @@ DO:
       END.
       APPLY "CLOSE" TO THIS-PROCEDURE.
     END.
-    
- 
-
 END.
 
 /* _UIB-CODE-BLOCK-END */
